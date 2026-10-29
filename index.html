@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Isochrones Bourgogne — Affectation des agents</title>
+<link rel="stylesheet" href="lib/leaflet/leaflet.css">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><img id="logoDefault" class="logo-img" src="img/enedis.png" alt="Enedis"><img id="logoImg" class="logo-img hidden" alt="Logo"> Isochrones Bourgogne <span class="sub">· temps d'accès par la route des agents aux incidents</span></div>
+  <div class="top-actions">
+    <img class="logo-side" src="img/van.png" alt="">
+    <img class="logo-side" src="img/geomatique.png" alt="DR BRG Géomatique">
+    <button class="btn ghost" id="btnSettings" title="Paramètres">⚙ Paramètres</button>
+    <button class="btn ghost" id="btnClear" title="Tout effacer">Tout effacer</button>
+  </div>
+</header>
+
+<main class="layout">
+  <aside class="panel">
+    <div class="tabs">
+      <button class="tab active" data-tab="agents">👷 Agents <span class="count" id="cntAgents">0</span></button>
+      <button class="tab" data-tab="incidents">⚠ Incidents <span class="count" id="cntIncidents">0</span></button>
+    </div>
+
+    <section class="adder">
+      <label class="lbl" id="adderLabel">Ajouter un agent (domicile)</label>
+      <input id="nameInput" class="input" placeholder="Nom de l'agent (ex. Martin)">
+      <div class="search-wrap">
+        <input id="addrInput" class="input" placeholder="Adresse… (ex. 1 rue de la Liberté, Dijon)" autocomplete="off">
+        <ul id="suggest" class="suggest"></ul>
+      </div>
+      <div class="row">
+        <button class="btn primary" id="btnPick">📍 Placer sur la carte</button>
+        <button class="btn" id="btnBulk">Import en lot</button>
+      </div>
+      <div id="bulkBox" class="bulk hidden">
+        <textarea id="bulkText" class="input" rows="5" placeholder="Une ligne par entrée : Nom ; Adresse&#10;Martin ; 12 rue Monge, Dijon&#10;Durand ; Place de l'Hôtel de Ville, Mâcon"></textarea>
+        <button class="btn primary" id="btnBulkGo">Géocoder et ajouter</button>
+      </div>
+      <p class="hint" id="pickHint">Choisissez une adresse dans la liste ou cliquez « Placer sur la carte » puis cliquez sur la carte.</p>
+    </section>
+
+    <section class="list-wrap">
+      <ul id="listAgents" class="list"></ul>
+      <ul id="listIncidents" class="list hidden"></ul>
+    </section>
+
+    <section class="recap">
+      <div class="recap-head">
+        <h2>Récapitulatif</h2>
+        <div class="row"><button class="btn small" id="btnCopy">Copier</button><button class="btn small primary" id="btnPdf">⬇ PDF</button></div>
+      </div>
+      <div id="recap" class="recap-body"><p class="empty">Ajoutez au moins un agent et un incident.</p></div>
+    </section>
+  </aside>
+
+  <section class="mapwrap">
+    <div id="map"></div>
+    <div class="legend">
+      <div class="legend-title">Temps d'accès en voiture vers l'incident</div>
+      <div class="legend-bar"></div>
+      <div class="legend-ticks"><span>0</span><span>15</span><span>30</span><span>45</span><span>1 h</span></div>
+      <label class="legend-op">Opacité <input type="range" id="isoOpacity" min="15" max="90" value="55"></label>
+    </div>
+    <div class="status" id="status"></div>
+    <div class="inc-card" id="incCard"></div>
+  </section>
+</main>
+
+<div class="modal hidden" id="settings">
+  <div class="modal-box">
+    <h3>Paramètres</h3>
+    <label class="lbl">Serveur Valhalla (isochrones + temps de trajet)</label>
+    <input id="setValhalla" class="input">
+    <label class="lbl">Serveur OSRM (secours pour les temps de trajet)</label>
+    <input id="setOsrm" class="input">
+    <label class="lbl">Isochrone pendant le déplacement</label>
+    <select id="setDragMode" class="input">
+      <option value="live">Mise à jour en continu (≈1 / seconde)</option>
+      <option value="end">Uniquement au lâcher du point</option>
+    </select>
+    <label class="lbl">Logo (PNG, JPG ou SVG)</label>
+    <div class="row"><input type="file" id="setLogo" accept="image/*" class="input"><button class="btn" id="setLogoDel" title="Revenir au logo par défaut">Retirer</button></div>
+    <p class="hint">Le logo choisi remplace celui de l'en-tête et figure en haut du PDF. Par défaut : logo Enedis.</p>
+    <p class="hint">Les serveurs publics gratuits sont limités à ~1 requête/seconde. Pour un usage intensif, renseignez votre propre serveur Valhalla.</p>
+    <div class="row end">
+      <button class="btn" id="setCancel">Annuler</button>
+      <button class="btn primary" id="setSave">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<script src="lib/leaflet/leaflet.js"></script>
+<script src="lib/jspdf/jspdf.umd.min.js"></script>
+<script src="lib/jspdf/jspdf.plugin.autotable.min.js"></script>
+<script src="js/logos.js"></script>
+<script src="js/zone.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

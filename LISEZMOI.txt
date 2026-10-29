@@ -1,0 +1,41 @@
+ISOCHRONES BOURGOGNE — Affectation des agents aux incidents
+============================================================
+
+Lancement : décompressez le dossier puis ouvrez index.html (Chrome, Edge ou Firefox).
+Une connexion Internet est nécessaire (fond de carte, adresses, calcul routier).
+
+Zone couverte : Côte-d'Or, Nièvre, Saône-et-Loire, Yonne + tampon de 6 km (pointillé vert).
+Tout ce qui est hors zone est masqué en blanc et refusé à la saisie.
+
+Utilisation
+-----------
+1. Onglet « Agents » : saisissez un nom puis une adresse (liste de suggestions),
+   ou « Placer sur la carte » puis clic. « Import en lot » : une ligne « Nom ; Adresse ».
+2. Onglet « Incidents » : même principe.
+3. L'incident sélectionné (point noir) affiche l'isochrone routière 0 → 1 h
+   (vert = proche, rouge = loin, contours 15 / 30 / 45 min / 1 h) et l'itinéraire
+   de l'agent le plus proche.
+4. Faites glisser un incident : l'isochrone et les temps se recalculent en continu.
+   Les agents sont aussi déplaçables.
+5. Récapitulatif : agents classés du plus proche au plus éloigné pour chaque incident,
+   bouton « Affecter », clic sur un agent = son itinéraire, bouton « Copier ».
+
+Les données sont gardées dans le navigateur (localStorage) entre deux ouvertures.
+
+Services utilisés (gratuits, publics)
+-------------------------------------
+- Fond de carte : Plan IGN / photos aériennes IGN (Géoplateforme), Esri, OpenStreetMap
+  (sélecteur en haut à gauche de la carte)
+- Adresses : Géoplateforme IGN (BAN), secours api-adresse.data.gouv.fr
+- Isochrones, temps et itinéraires en voiture : Valhalla (valhalla1.openstreetmap.de),
+  secours OSRM pour les temps.
+Le serveur Valhalla public est limité (~1 requête/seconde, sans garantie de service) :
+pendant un glisser, la mise à jour se fait environ toutes les 1 à 2 secondes.
+Pour un usage opérationnel, installez votre propre serveur Valhalla et indiquez son
+adresse dans « Paramètres ».
+
+Confidentialité : les adresses (dont le domicile des agents) et les coordonnées sont
+envoyées à ces services publics pour le calcul. Vérifiez la compatibilité avec votre
+politique RGPD ; un serveur Valhalla interne évite cet envoi.
+
+Temps de trajet : estimation routière sans trafic réel ni gyrophare.
