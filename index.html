@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Isochrones Bourgogne — Affectation des agents</title>
 <link rel="stylesheet" href="lib/leaflet/leaflet.css">
-<link rel="stylesheet" href="css/app.css">
+<link rel="stylesheet" href="css/app.css?v=20261030b">
 </head>
 <body>
 <header class="topbar">
@@ -23,9 +23,11 @@
     <div class="tabs">
       <button class="tab active" data-tab="agents">👷 Agents <span class="count" id="cntAgents">0</span></button>
       <button class="tab" data-tab="incidents">⚠ Incidents <span class="count" id="cntIncidents">0</span></button>
+      <button class="tab" data-tab="couches">🗂 Couches <span class="count" id="cntLayers">0</span></button>
     </div>
 
     <section class="adder">
+      <div id="adderFields" class="adder-fields">
       <label class="lbl" id="adderLabel">Ajouter un agent (domicile)</label>
       <input id="nameInput" class="input" placeholder="Nom de l'agent (ex. Martin)">
       <div class="search-wrap">
@@ -41,11 +43,14 @@
         <button class="btn primary" id="btnBulkGo">Géocoder et ajouter</button>
       </div>
       <p class="hint" id="pickHint">Choisissez une adresse dans la liste ou cliquez « Placer sur la carte » puis cliquez sur la carte.</p>
+      </div>
+      <button class="btn import-btn" id="btnImport">📂 Importer un fichier <small>(SHP zippé, GeoJSON, KML, CSV X/Y)</small></button>
     </section>
 
     <section class="list-wrap">
       <ul id="listAgents" class="list"></ul>
       <ul id="listIncidents" class="list hidden"></ul>
+      <ul id="listLayers" class="list hidden"></ul>
     </section>
 
     <section class="recap">
@@ -93,11 +98,63 @@
   </div>
 </div>
 
+<div class="modal hidden" id="importModal">
+  <div class="modal-box wide">
+    <h3>Importer des données géographiques</h3>
+    <p class="hint">Formats acceptés : <b>Shapefile zippé</b> (.zip contenant .shp, .dbf, .prj) ou les fichiers .shp + .dbf + .prj sélectionnés ensemble, <b>GeoJSON</b>, <b>KML</b>, <b>CSV</b> avec colonnes de coordonnées.</p>
+    <input type="file" id="impFile" class="input" multiple accept=".zip,.shp,.dbf,.prj,.cpg,.shx,.geojson,.json,.kml,.csv,.txt">
+    <div id="impInfo" class="imp-info"></div>
+
+    <div id="impCsv" class="imp-grid hidden">
+      <div><label class="lbl">Colonne X (longitude / Est)</label><select id="impX" class="input"></select></div>
+      <div><label class="lbl">Colonne Y (latitude / Nord)</label><select id="impY" class="input"></select></div>
+      <div class="span2"><label class="lbl">Système de coordonnées</label>
+        <select id="impCrs" class="input">
+          <option value="auto">Détection automatique</option>
+          <option value="EPSG:4326">WGS84 — degrés décimaux (GPS)</option>
+          <option value="EPSG:2154">Lambert 93 (EPSG:2154)</option>
+          <option value="EPSG:3946">Conique Conforme CC46 (EPSG:3946)</option>
+          <option value="EPSG:3947">Conique Conforme CC47 (EPSG:3947)</option>
+          <option value="EPSG:3948">Conique Conforme CC48 (EPSG:3948)</option>
+          <option value="EPSG:27572">Lambert II étendu (EPSG:27572)</option>
+          <option value="EPSG:3857">Web Mercator (EPSG:3857)</option>
+        </select></div>
+    </div>
+
+    <div id="impOpts" class="imp-grid hidden">
+      <div class="span2"><label class="lbl">Importer comme</label>
+        <select id="impAs" class="input">
+          <option value="layer">Couche d'affichage (consultation)</option>
+          <option value="agents">Agents (points = domiciles)</option>
+          <option value="incidents">Incidents (points = lieux d'incident)</option>
+        </select></div>
+      <div><label class="lbl">Colonne du nom</label><select id="impName" class="input"></select></div>
+      <div><label class="lbl" id="impDescLbl">Colonne adresse / description</label><select id="impDesc" class="input"></select></div>
+      <div id="impLayerOpts" class="span2 imp-grid">
+        <div><label class="lbl">Nom de la couche</label><input id="impLayerName" class="input"></div>
+        <div><label class="lbl">Couleur</label><input id="impColor" type="color" value="#7c3aed" class="input color"></div>
+        <div><label class="lbl">Colorer selon la colonne</label><select id="impColorBy" class="input"></select></div>
+      </div>
+    </div>
+
+    <div id="impPreview" class="imp-preview"></div>
+    <div class="row end">
+      <button class="btn" id="impCancel">Annuler</button>
+      <button class="btn primary" id="impGo" disabled>Importer</button>
+    </div>
+  </div>
+</div>
+
 <script src="lib/leaflet/leaflet.js"></script>
+<script src="lib/import/proj4.js"></script>
+<script src="lib/import/shp.min.js"></script>
+<script src="lib/import/papaparse.min.js"></script>
+<script src="lib/import/togeojson.umd.js"></script>
 <script src="lib/jspdf/jspdf.umd.min.js"></script>
 <script src="lib/jspdf/jspdf.plugin.autotable.min.js"></script>
-<script src="js/logos.js"></script>
-<script src="js/zone.js"></script>
-<script src="js/app.js"></script>
+<script src="js/logos.js?v=20261030b"></script>
+<script src="js/zone.js?v=20261030b"></script>
+<script src="js/app.js?v=20261030b"></script>
+<script src="js/import.js?v=20261030b"></script>
 </body>
 </html>

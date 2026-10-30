@@ -130,3 +130,36 @@ textarea.input{resize:vertical}
 .top-actions{align-items:center}
 .logo-side{height:50px;width:auto;margin-right:6px}
 @media (max-width:820px){.logo-side{display:none}}
+
+.import-btn{width:100%;margin-top:8px;text-align:left;border-style:dashed}
+.import-btn small{color:var(--muted);font-weight:400}
+.adder-fields{display:flex;flex-direction:column;gap:8px}
+.modal-box.wide{width:min(620px,94vw);max-height:92vh;overflow:auto}
+.imp-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px}
+.imp-grid .span2{grid-column:1 / -1}
+.imp-grid > div{display:flex;flex-direction:column;gap:4px}
+.imp-info{font-size:13px}
+.imp-info:empty,.imp-preview:empty{display:none}
+.imp-preview{font-size:13px;background:var(--bg);border-radius:9px;padding:8px 10px}
+.imp-preview table{border-collapse:collapse;width:100%;margin-top:6px;font-size:12px}
+.imp-preview td,.imp-preview th{border-bottom:1px solid var(--line);padding:3px 6px;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px}
+.input.color{padding:2px;height:38px}
+.warn{color:#b45309}
+.list .sw{flex:none;width:22px;height:22px;border:0;padding:0;border-radius:6px;cursor:pointer;background:none}
+.list .eye{border:0;background:none;font-size:15px;padding:2px 5px;border-radius:6px;opacity:.9}
+.list .eye.off{opacity:.3}
+.list .eye:hover{background:#eef0ec}
+.pop-tbl{border-collapse:collapse;font-size:12px}
+.pop-tbl td{padding:2px 6px;border-bottom:1px solid #eee;vertical-align:top}
+.pop-tbl td:first-child{color:#6b726d;font-weight:600}
+.pop-title{font-weight:700;margin-bottom:4px}
+.tab{padding:12px 6px;font-size:14px;white-space:nowrap}
+
+.lyr-leg{display:flex;flex-wrap:wrap;gap:3px 10px;margin-top:4px;font-size:11px;color:var(--ink)}
+.lyr-leg span{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.lyr-leg i{display:inline-block;width:9px;height:9px;border-radius:50%}
+.list li.lyr{align-items:flex-start}
+
+.zone-ctl{background:#fff;padding:6px 9px;display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:600}
+.zone-ctl label{display:flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap}
+.zone-ctl input{accent-color:var(--green);margin:0}

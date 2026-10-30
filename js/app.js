@@ -10,7 +10,9 @@
   const DEFAULTS = {
     valhalla: 'https://valhalla1.openstreetmap.de',
     osrm: 'https://router.project-osrm.org',
-    dragMode: 'live'
+    dragMode: 'live',
+    restrict: false,  // saisie limitée à la Bourgogne + 6 km
+    mask: true        // voile blanc hors Bourgogne
   };
   const GEO_SEARCH = ['https://data.geopf.fr/geocodage/search', 'https://api-adresse.data.gouv.fr/search/'];
   const GEO_REVERSE = ['https://data.geopf.fr/geocodage/reverse', 'https://api-adresse.data.gouv.fr/reverse/'];
@@ -91,7 +93,9 @@
 
   /* ---------------- Zone Bourgogne + 6 km ---------------- */
   const zoneRing = ZONE.geometry.coordinates[0]; // [lng, lat]
-  function inZone(lat, lng) {
+  // Saisie autorisée partout (France et au-delà)
+  function inZone() { return true; }
+  function inBourgogne(lat, lng) {
     let inside = false;
     for (let i = 0, j = zoneRing.length - 1; i < zoneRing.length; j = i++) {
       const xi = zoneRing[i][0], yi = zoneRing[i][1], xj = zoneRing[j][0], yj = zoneRing[j][1];
@@ -104,8 +108,7 @@
   const latlngs = zoneRing.map((c) => [c[1], c[0]]);
   const zoneBounds = L.latLngBounds(latlngs);
   const map = L.map('map', {
-    zoomControl: true, minZoom: 7, maxZoom: 17,
-    maxBounds: zoneBounds.pad(0.25), maxBoundsViscosity: 0.8, preferCanvas: false
+    zoomControl: true, minZoom: 5, maxZoom: 18, maxBoundsViscosity: 0.8, preferCanvas: false
   });
   map.fitBounds(zoneBounds, { padding: [10, 10] });
 
@@ -160,8 +163,30 @@
 
   // Masque blanc autour de la zone
   const world = [[89, -179], [89, 179], [-89, 179], [-89, -179]];
-  L.polygon([world, latlngs], { pane: 'mask', stroke: false, fillColor: '#ffffff', fillOpacity: 0.8, interactive: false }).addTo(map);
+  const maskLayer = L.polygon([world, latlngs], { pane: 'mask', stroke: false, fillColor: '#ffffff', fillOpacity: 0.8, interactive: false });
   L.polygon(latlngs, { pane: 'mask', color: '#2e9e1f', weight: 2, dashArray: '6 5', fill: false, interactive: false }).addTo(map);
+  function applyMask() { if (state.settings.mask) maskLayer.addTo(map); else map.removeLayer(maskLayer); }
+  function applyRestrict() {
+    if (state.settings.restrict) { map.setMinZoom(7); map.setMaxBounds(zoneBounds.pad(0.25)); }
+    else { map.setMaxBounds(null); map.setMinZoom(5); }
+  }
+  // Contrôle « Zone » sur la carte
+  const ZoneCtl = L.Control.extend({
+    options: { position: 'topleft' },
+    onAdd() {
+      const d = L.DomUtil.create('div', 'leaflet-bar zone-ctl');
+      d.innerHTML = '<label title="Voile blanc sur le reste de la France"><input type="checkbox" id="ctlMask"> Masque hors Bourgogne</label>' +
+        '';
+      L.DomEvent.disableClickPropagation(d);
+      L.DomEvent.disableScrollPropagation(d);
+      d.querySelector('#ctlMask').checked = state.settings.mask;
+      d.querySelector('#ctlMask').addEventListener('change', (e) => { state.settings.mask = e.target.checked; applyMask(); save(); });
+      return d;
+    }
+  });
+  new ZoneCtl().addTo(map);
+  state.settings.restrict = false;
+  applyMask(); applyRestrict();
   // Limites départementales
   L.geoJSON(DEPTS, { pane: 'isoLines', interactive: false, style: { color: '#8a918c', weight: 1, opacity: 0.6, fill: false, dashArray: '2 4' } }).addTo(map);
 
@@ -311,9 +336,25 @@
       t: d.durations[i][j], d: d.distances ? d.distances[i][j] / 1000 : null
     })));
   }
-  async function matrix(srcs, tgts) {
+  async function matrixOne(srcs, tgts) {
     try { return await matrixValhalla(srcs, tgts); }
     catch (e) { console.warn('Valhalla matrice KO, essai OSRM', e); return matrixOsrm(srcs, tgts); }
+  }
+  // Découpage en blocs (les serveurs publics limitent la taille des matrices)
+  async function matrix(srcs, tgts) {
+    const MAXP = 400, TB = Math.min(tgts.length, 20), SB = Math.max(1, Math.floor(MAXP / TB));
+    if (srcs.length <= SB && tgts.length <= TB) return matrixOne(srcs, tgts);
+    const out = srcs.map(() => new Array(tgts.length));
+    let first = true;
+    for (let j = 0; j < tgts.length; j += TB) {
+      for (let i = 0; i < srcs.length; i += SB) {
+        if (!first) await sleep(REQ_GAP);
+        first = false;
+        const m = await matrixOne(srcs.slice(i, i + SB), tgts.slice(j, j + TB));
+        m.forEach((row, a) => row.forEach((c, b) => { out[i + a][j + b] = c; }));
+      }
+    }
+    return out;
   }
 
   function computeTimes(incs) {
@@ -453,6 +494,26 @@
     save(); renderLists(); renderRecap();
     return item;
   }
+  // Ajout en masse (import de fichier) : un seul calcul à la fin
+  function addBatch(kind, rows) {
+    const isAgent = kind === 'agents';
+    const list = isAgent ? state.agents : state.incidents;
+    let n = 0, last = null;
+    rows.forEach((r) => {
+      if (!inZone(r.lat, r.lng)) return;
+      const item = { id: 'x' + (seq++), name: r.name || (isAgent ? 'Agent ' : 'Incident ') + (list.length + 1), address: r.address || 'Importé', lat: r.lat, lng: r.lng };
+      list.push(item); n++; last = item;
+      if (isAgent) addAgentMarker(item); else addIncMarker(item);
+    });
+    if (!n) return 0;
+    save(); renderLists();
+    if (!isAgent) { select(last.id); computeTimes().then(showRoute); }
+    else computeTimes().then(showRoute);
+    renderRecap();
+    return n;
+  }
+  window.APP = { addBatch: (k, r) => addBatch(k, r), inZone: (a, b) => inZone(a, b), restricted: () => !!state.settings.restrict, map, status: (...a) => status(...a), esc, setTab: (t) => setTab(t), STORE_KEY };
+
   function removeItem(kind, id) {
     if (kind === 'agents') {
       state.agents = state.agents.filter((a) => a.id !== id);
@@ -552,6 +613,9 @@
     document.querySelectorAll('.tab').forEach((b) => b.classList.toggle('active', b.dataset.tab === t));
     $('#listAgents').classList.toggle('hidden', t !== 'agents');
     $('#listIncidents').classList.toggle('hidden', t !== 'incidents');
+    $('#listLayers').classList.toggle('hidden', t !== 'couches');
+    $('#adderFields').classList.toggle('hidden', t === 'couches');
+    if (t === 'couches') { setPicking(false); return; }
     $('#adderLabel').textContent = t === 'agents' ? 'Ajouter un agent (domicile)' : 'Ajouter un incident';
     $('#nameInput').placeholder = t === 'agents' ? 'Nom de l\'agent (ex. Martin)' : 'Nom de l\'incident (ex. Fuite réseau)';
     setPicking(false);

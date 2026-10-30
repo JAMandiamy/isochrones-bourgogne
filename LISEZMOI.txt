@@ -4,8 +4,10 @@ ISOCHRONES BOURGOGNE — Affectation des agents aux incidents
 Lancement : décompressez le dossier puis ouvrez index.html (Chrome, Edge ou Firefox).
 Une connexion Internet est nécessaire (fond de carte, adresses, calcul routier).
 
-Zone couverte : Côte-d'Or, Nièvre, Saône-et-Loire, Yonne + tampon de 6 km (pointillé vert).
-Tout ce qui est hors zone est masqué en blanc et refusé à la saisie.
+Zone de travail : Côte-d'Or, Nièvre, Saône-et-Loire, Yonne + tampon de 6 km (pointillé vert).
+Agents, incidents et couches peuvent être placés partout en France.
+Case « Masque hors Bourgogne » (sur la carte, en haut à gauche) : affiche ou retire
+le voile blanc sur le reste de la France.
 
 Utilisation
 -----------
@@ -19,6 +21,16 @@ Utilisation
    Les agents sont aussi déplaçables.
 5. Récapitulatif : agents classés du plus proche au plus éloigné pour chaque incident,
    bouton « Affecter », clic sur un agent = son itinéraire, bouton « Copier ».
+
+6. Import de fichiers (bouton « Importer un fichier ») :
+   - Shapefile : un .zip contenant .shp .dbf .prj (ou ces fichiers sélectionnés ensemble)
+   - GeoJSON, KML
+   - CSV : choix de la colonne X et de la colonne Y, et du système de coordonnées
+     (détection automatique, WGS84, Lambert 93, CC46/47/48, Lambert II étendu, Web Mercator).
+     Séparateur ; , ou tabulation détecté, virgule décimale acceptée, X/Y inversés corrigés.
+   - « Importer comme » : couche d'affichage (onglet Couches : couleur, afficher/masquer,
+     zoom, suppression, clic = attributs), ou agents, ou incidents.
+   - « Colorer selon la colonne » = une couleur par catégorie, avec légende dans l'onglet Couches.
 
 Les données sont gardées dans le navigateur (localStorage) entre deux ouvertures.
 
